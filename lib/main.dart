@@ -2,6 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
+class AppColors {
+  static const backgroundTop = Color(0xFF081627);
+  static const backgroundBottom = Color(0xFF020912);
+  static const appBar = Color(0xFF0E2A47);
+  static const surface = Color(0xFF163556);
+  static const surfaceSoft = Color(0xFF22486F);
+
+  static const accentCyan = Color(0xFF25D0FF);
+  static const accentTeal = Color(0xFF00E5A8);
+  static const accentAmber = Color(0xFFFFB703);
+
+  static const success = Color(0xFF52FFB1);
+  static const error = Color(0xFFFF627B);
+
+  static const stopPrimary = Color(0xFFFF4D67);
+  static const stopSecondary = Color(0xFFB3003C);
+
+  static const textPrimary = Color(0xFFE9F4FF);
+  static const textMuted = Color(0xFFA1BDD6);
+}
+
 void main() {
   runApp(const CarControlApp());
 }
@@ -15,9 +36,27 @@ class CarControlApp extends StatelessWidget {
       title: 'Car Control App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF1A1A2E),
+        scaffoldBackgroundColor: AppColors.backgroundBottom,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.accentCyan,
+          brightness: Brightness.dark,
+          primary: AppColors.accentCyan,
+          secondary: AppColors.accentAmber,
+          surface: AppColors.surface,
+          error: AppColors.error,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.appBar,
+          foregroundColor: AppColors.textPrimary,
+          elevation: 0,
+        ),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppColors.error.withValues(alpha: 0.9),
+          contentTextStyle: const TextStyle(color: AppColors.textPrimary),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          behavior: SnackBarBehavior.floating,
+        ),
         useMaterial3: true,
       ),
       home: const CarControlPage(),
@@ -103,6 +142,8 @@ class _CarControlPageState extends State<CarControlPage> {
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = isConnected ? AppColors.success : AppColors.error;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -110,8 +151,6 @@ class _CarControlPageState extends State<CarControlPage> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
-        backgroundColor: const Color(0xFF0F3460),
-        elevation: 0,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -119,8 +158,8 @@ class _CarControlPageState extends State<CarControlPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              const Color(0xFF0F3460),
-              const Color(0xFF1A1A2E),
+              AppColors.backgroundTop,
+              AppColors.backgroundBottom,
             ],
           ),
         ),
@@ -140,11 +179,31 @@ class _CarControlPageState extends State<CarControlPage> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.surface.withValues(alpha: 0.62),
+                          borderRadius: BorderRadius.circular(14),
                           border: Border.all(
-                            color: isConnected ? Colors.green : Colors.red,
-                            width: 2,
+                            color: statusColor,
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: statusColor.withValues(alpha: 0.16),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.35),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.surfaceSoft.withValues(alpha: 0.48),
+                              AppColors.surface.withValues(alpha: 0.35),
+                            ],
                           ),
                         ),
                         child: Column(
@@ -156,7 +215,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                   children: [
                                     Icon(
                                       isConnected ? Icons.wifi : Icons.wifi_off,
-                                      color: isConnected ? Colors.green : Colors.red,
+                                      color: statusColor,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
@@ -164,7 +223,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                       connectionStatus,
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: isConnected ? Colors.green : Colors.red,
+                                        color: statusColor,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -173,7 +232,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                 IconButton(
                                   icon: const Icon(Icons.refresh, size: 20),
                                   onPressed: checkConnection,
-                                  color: Colors.white,
+                                  color: AppColors.accentCyan,
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(),
                                 ),
@@ -187,14 +246,14 @@ class _CarControlPageState extends State<CarControlPage> {
                                   'Last Command:',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.white.withOpacity(0.7),
+                                    color: AppColors.textMuted,
                                   ),
                                 ),
                                 Text(
                                   lastCommand,
                                   style: const TextStyle(
                                     fontSize: 14,
-                                    color: Colors.white,
+                                    color: AppColors.textPrimary,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -216,7 +275,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                 icon: Icons.arrow_upward,
                                 label: 'FORWARD',
                                 onPressed: () => sendCommand('forward'),
-                                color: Colors.green,
+                                color: AppColors.accentTeal,
                               ),
                               
                               const SizedBox(height: 16),
@@ -228,14 +287,14 @@ class _CarControlPageState extends State<CarControlPage> {
                                     icon: Icons.arrow_back,
                                     label: 'LEFT',
                                     onPressed: () => sendCommand('left'),
-                                    color: Colors.orange,
+                                    color: AppColors.accentAmber,
                                   ),
                                   const SizedBox(width: 24),
                                   ControlButton(
                                     icon: Icons.arrow_forward,
                                     label: 'RIGHT',
                                     onPressed: () => sendCommand('right'),
-                                    color: Colors.orange,
+                                    color: AppColors.accentCyan,
                                   ),
                                 ],
                               ),
@@ -246,7 +305,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                 icon: Icons.arrow_downward,
                                 label: 'BACKWARD',
                                 onPressed: () => sendCommand('backward'),
-                                color: Colors.blue,
+                                color: const Color(0xFF4A8CFF),
                               ),
                               
                               const SizedBox(height: 24),
@@ -265,8 +324,11 @@ class _CarControlPageState extends State<CarControlPage> {
                       child: Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.05),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.surface.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.accentCyan.withValues(alpha: 0.18),
+                          ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -274,14 +336,14 @@ class _CarControlPageState extends State<CarControlPage> {
                             const Icon(
                               Icons.memory,
                               size: 14,
-                              color: Colors.white54,
+                              color: AppColors.textMuted,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               'ESP32: $esp32IP',
                               style: const TextStyle(
                                 fontSize: 11,
-                                color: Colors.white54,
+                                color: AppColors.textMuted,
                               ),
                             ),
                           ],
@@ -342,17 +404,26 @@ class _ControlButtonState extends State<ControlButton> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isPressed
-                ? [widget.color.withOpacity(0.8), widget.color]
-                : [widget.color, widget.color.withOpacity(0.7)],
+                ? [widget.color.withValues(alpha: 0.78), widget.color]
+                : [widget.color, widget.color.withValues(alpha: 0.72)],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.16),
+            width: 1,
+          ),
           boxShadow: isPressed
               ? []
               : [
                   BoxShadow(
-                    color: widget.color.withOpacity(0.5),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: widget.color.withValues(alpha: 0.5),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 10),
                   ),
                 ],
         ),
@@ -371,6 +442,7 @@ class _ControlButtonState extends State<ControlButton> {
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
+                letterSpacing: 0.5,
               ),
             ),
           ],
@@ -417,17 +489,26 @@ class _StopButtonState extends State<StopButton> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: isPressed
-                ? [Colors.red.shade700, Colors.red.shade900]
-                : [Colors.red, Colors.red.shade700],
+                ? [AppColors.stopSecondary, AppColors.stopPrimary]
+                : [AppColors.stopPrimary, AppColors.stopSecondary],
           ),
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1.5,
+          ),
           boxShadow: isPressed
               ? []
               : [
                   BoxShadow(
-                    color: Colors.red.withOpacity(0.6),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+                    color: AppColors.stopPrimary.withValues(alpha: 0.6),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    blurRadius: 20,
+                    offset: const Offset(0, 12),
                   ),
                 ],
         ),
