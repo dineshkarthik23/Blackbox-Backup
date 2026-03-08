@@ -28,11 +28,9 @@ class _SettingsPageState extends State<SettingsPage> {
   late int reconnectIntervalSec;
 
   String? ipError;
-  bool _showPassword = false;        // for IP field reveal toggle (reused as "show raw IP")
+  bool _showPassword = false;        
   DateTime? lastSavedAt;
-  bool _dirty = false;               // track unsaved changes
-
-  // ── Lifecycle ──────────────────────────────────────────────────────────────
+  bool _dirty = false;          
 
   @override
   void initState() {
@@ -67,13 +65,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _markDirty() => setState(() => _dirty = true);
 
-  // ── Validation ─────────────────────────────────────────────────────────────
-
   bool _validIP(String v) => RegExp(
     r'^((25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(25[0-5]|2[0-4]\d|[01]?\d?\d)$',
   ).hasMatch(v);
-
-  // ── Actions ────────────────────────────────────────────────────────────────
 
   void _save() {
     final ip = ipController.text.trim();
@@ -178,10 +172,6 @@ class _SettingsPageState extends State<SettingsPage> {
     ),
   );
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // BUILD
-  // ─────────────────────────────────────────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -247,8 +237,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // ── Section: Profile ───────────────────────────────────────────────────────
-
   Widget _buildProfileCard() => _card(
     child: Row(
       children: [
@@ -293,8 +281,6 @@ class _SettingsPageState extends State<SettingsPage> {
       ],
     ),
   );
-
-  // ── Section: Appearance ────────────────────────────────────────────────────
 
   Widget _buildAppearanceCard() => _card(
     child: Column(
@@ -374,15 +360,12 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  // ── Section: Connection ────────────────────────────────────────────────────
-
   Widget _buildConnectionCard() => _card(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _sectionLabel('Connection'),
 
-        // IP field
         TextField(
           controller: ipController,
           keyboardType: TextInputType.number,
@@ -426,8 +409,7 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
 
         const SizedBox(height: 18),
-
-        // Timeout slider
+        
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

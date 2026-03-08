@@ -5,37 +5,36 @@ import 'dart:async';
 import 'package:black_box/screens/settings_page.dart';
 
 class AppColors {
-  static const lightBg          = Color(0xFFF4F7FB);
-  static const lightBgCard      = Color(0xFFFFFFFF);
-  static const lightHeaderTop   = Color(0xFF1565C0);
-  static const lightHeaderBot   = Color(0xFF0D47A1);
-  static const lightSurface     = Color(0xFFE8F0FE);
-  static const lightBorder      = Color(0xFFBBCEF5);
+  static const lightBg = Color(0xFFF4F7FB);
+  static const lightBgCard = Color(0xFFFFFFFF);
+  static const lightHeaderTop = Color(0xFF1565C0);
+  static const lightHeaderBot = Color(0xFF0D47A1);
+  static const lightSurface = Color(0xFFE8F0FE);
+  static const lightBorder = Color(0xFFBBCEF5);
   static const lightTextPrimary = Color(0xFF0D1B3E);
-  static const lightTextMuted   = Color(0xFF5A7196);
-  static const lightAccent      = Color(0xFF1976D2);
-  static const lightAccentAlt   = Color(0xFF0288D1);
+  static const lightTextMuted = Color(0xFF5A7196);
+  static const lightAccent = Color(0xFF1976D2);
+  static const lightAccentAlt = Color(0xFF0288D1);
 
-  static const darkBgTop        = Color(0xFF081627);
-  static const darkBgBot        = Color(0xFF020912);
-  static const darkAppBar       = Color(0xFF0E2A47);
-  static const darkSurface      = Color(0xFF163556);
-  static const darkSurfaceSoft  = Color(0xFF22486F);
-  static const darkAccentCyan   = Color(0xFF25D0FF);
-  static const darkAccentTeal   = Color(0xFF00E5A8);
-  static const darkAccentAmber  = Color(0xFFFFB703);
-  static const darkTextPrimary  = Color(0xFFE9F4FF);
-  static const darkTextMuted    = Color(0xFFA1BDD6);
+  static const darkBgTop = Color(0xFF081627);
+  static const darkBgBot = Color(0xFF020912);
+  static const darkAppBar = Color(0xFF0E2A47);
+  static const darkSurface = Color(0xFF163556);
+  static const darkSurfaceSoft = Color(0xFF22486F);
+  static const darkAccentCyan = Color(0xFF25D0FF);
+  static const darkAccentTeal = Color(0xFF00E5A8);
+  static const darkAccentAmber = Color(0xFFFFB703);
+  static const darkTextPrimary = Color(0xFFE9F4FF);
+  static const darkTextMuted = Color(0xFFA1BDD6);
 
-  static const success          = Color(0xFF2ECC71);
-  static const error            = Color(0xFFFF4C67);
-  static const stopPrimary      = Color(0xFFFF4D67);
-  static const stopSecondary    = Color(0xFFB3003C);
+  static const success = Color(0xFF2ECC71);
+  static const error = Color(0xFFFF4C67);
+  static const stopPrimary = Color(0xFFFF4D67);
+  static const stopSecondary = Color(0xFFB3003C);
 
-  static const btnLight         = Color(0xFF1976D2);
-  static const btnDark          = Color(0xFF25D0FF);
+  static const btnLight = Color(0xFF1976D2);
+  static const btnDark = Color(0xFF25D0FF);
 }
-
 
 ThemeData lightTheme() => ThemeData(
   brightness: Brightness.light,
@@ -112,14 +111,10 @@ class CarControlApp extends StatefulWidget {
 
   @override
   State<CarControlApp> createState() => _CarControlAppState();
-
-  /// Allow descendants to call toggleTheme / read isDark via this helper.
-  static _CarControlAppState of(BuildContext context) =>
-      context.findAncestorStateOfType<_CarControlAppState>()!;
 }
 
 class _CarControlAppState extends State<CarControlApp> {
-  bool isDarkMode = true;   // default: dark
+  bool isDarkMode = true; // default: dark
 
   void toggleTheme() => setState(() => isDarkMode = !isDarkMode);
 
@@ -214,7 +209,9 @@ class _AppShellState extends State<AppShell> {
         children: [
           CarControlPage(
             esp32IP: preferences.esp32IP,
-            commandTimeout: Duration(milliseconds: preferences.commandTimeoutMs),
+            commandTimeout: Duration(
+              milliseconds: preferences.commandTimeoutMs,
+            ),
             autoReconnect: preferences.autoReconnect,
             hapticsEnabled: preferences.hapticsEnabled,
             reconnectIntervalSec: preferences.reconnectIntervalSec,
@@ -321,8 +318,7 @@ class _CarControlPageState extends State<CarControlPage> {
           .timeout(const Duration(seconds: 3));
       setState(() {
         isConnected = response.statusCode == 200;
-        connectionStatus =
-            isConnected ? 'Connected to ESP32' : 'ESP32 Error';
+        connectionStatus = isConnected ? 'Connected to ESP32' : 'ESP32 Error';
       });
     } catch (_) {
       setState(() {
@@ -351,8 +347,10 @@ class _CarControlPageState extends State<CarControlPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Command failed: $e'),
-              duration: const Duration(seconds: 2)),
+          SnackBar(
+            content: Text('Command failed: $e'),
+            duration: const Duration(seconds: 2),
+          ),
         );
       }
     }
@@ -372,7 +370,10 @@ class _CarControlPageState extends State<CarControlPage> {
             : Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.lightHeaderTop, AppColors.lightHeaderBot],
+                    colors: [
+                      AppColors.lightHeaderTop,
+                      AppColors.lightHeaderBot,
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -417,9 +418,11 @@ class _CarControlPageState extends State<CarControlPage> {
         child: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height -
+              minHeight:
+                  MediaQuery.of(context).size.height -
                   MediaQuery.of(context).padding.top -
-                  kToolbarHeight - 80,
+                  kToolbarHeight -
+                  80,
             ),
             child: IntrinsicHeight(
               child: Column(
@@ -498,11 +501,11 @@ class _CarControlPageState extends State<CarControlPage> {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.refresh_rounded,
-                  size: 20,
-                  color: dark
-                      ? AppColors.darkAccentCyan
-                      : AppColors.lightAccent),
+              icon: Icon(
+                Icons.refresh_rounded,
+                size: 20,
+                color: dark ? AppColors.darkAccentCyan : AppColors.lightAccent,
+              ),
               onPressed: checkConnection,
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(),
@@ -597,11 +600,11 @@ class _CarControlPageState extends State<CarControlPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.memory,
-                size: 14,
-                color: dark
-                    ? AppColors.darkTextMuted
-                    : AppColors.lightTextMuted),
+            Icon(
+              Icons.memory,
+              size: 14,
+              color: dark ? AppColors.darkTextMuted : AppColors.lightTextMuted,
+            ),
             const SizedBox(width: 6),
             Text(
               'ESP32: ${widget.esp32IP}',
@@ -678,7 +681,8 @@ class _ControlButtonState extends State<ControlButton> {
               : [
                   BoxShadow(
                     color: widget.color.withValues(
-                        alpha: widget.isDark ? 0.45 : 0.25),
+                      alpha: widget.isDark ? 0.45 : 0.25,
+                    ),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -687,8 +691,11 @@ class _ControlButtonState extends State<ControlButton> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(widget.icon, size: 34,
-                color: widget.isDark ? Colors.white : Colors.white),
+            Icon(
+              widget.icon,
+              size: 34,
+              color: widget.isDark ? Colors.white : Colors.white,
+            ),
             const SizedBox(height: 5),
             Text(
               widget.label,
