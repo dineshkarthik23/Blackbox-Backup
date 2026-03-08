@@ -2,80 +2,157 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'package:black_box/screens/settings_page.dart';
 
 class AppColors {
-  static const backgroundTop = Color(0xFF081627);
-  static const backgroundBottom = Color(0xFF020912);
-  static const appBar = Color(0xFF0E2A47);
-  static const surface = Color(0xFF163556);
-  static const surfaceSoft = Color(0xFF22486F);
+  static const lightBg          = Color(0xFFF4F7FB);
+  static const lightBgCard      = Color(0xFFFFFFFF);
+  static const lightHeaderTop   = Color(0xFF1565C0);
+  static const lightHeaderBot   = Color(0xFF0D47A1);
+  static const lightSurface     = Color(0xFFE8F0FE);
+  static const lightBorder      = Color(0xFFBBCEF5);
+  static const lightTextPrimary = Color(0xFF0D1B3E);
+  static const lightTextMuted   = Color(0xFF5A7196);
+  static const lightAccent      = Color(0xFF1976D2);
+  static const lightAccentAlt   = Color(0xFF0288D1);
 
-  static const accentCyan = Color(0xFF25D0FF);
-  static const accentTeal = Color(0xFF00E5A8);
-  static const accentAmber = Color(0xFFFFB703);
+  static const darkBgTop        = Color(0xFF081627);
+  static const darkBgBot        = Color(0xFF020912);
+  static const darkAppBar       = Color(0xFF0E2A47);
+  static const darkSurface      = Color(0xFF163556);
+  static const darkSurfaceSoft  = Color(0xFF22486F);
+  static const darkAccentCyan   = Color(0xFF25D0FF);
+  static const darkAccentTeal   = Color(0xFF00E5A8);
+  static const darkAccentAmber  = Color(0xFFFFB703);
+  static const darkTextPrimary  = Color(0xFFE9F4FF);
+  static const darkTextMuted    = Color(0xFFA1BDD6);
 
-  static const success = Color(0xFF52FFB1);
-  static const error = Color(0xFFFF627B);
+  static const success          = Color(0xFF2ECC71);
+  static const error            = Color(0xFFFF4C67);
+  static const stopPrimary      = Color(0xFFFF4D67);
+  static const stopSecondary    = Color(0xFFB3003C);
 
-  static const stopPrimary = Color(0xFFFF4D67);
-  static const stopSecondary = Color(0xFFB3003C);
-
-  static const textPrimary = Color(0xFFE9F4FF);
-  static const textMuted = Color(0xFFA1BDD6);
+  static const btnLight         = Color(0xFF1976D2);
+  static const btnDark          = Color(0xFF25D0FF);
 }
+
+
+ThemeData lightTheme() => ThemeData(
+  brightness: Brightness.light,
+  scaffoldBackgroundColor: AppColors.lightBg,
+  colorScheme: const ColorScheme.light(
+    primary: AppColors.lightAccent,
+    secondary: AppColors.lightAccentAlt,
+    surface: AppColors.lightBgCard,
+    error: AppColors.error,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AppColors.lightHeaderTop,
+    foregroundColor: Colors.white,
+    elevation: 0,
+    centerTitle: true,
+  ),
+  navigationBarTheme: NavigationBarThemeData(
+    backgroundColor: Colors.white,
+    indicatorColor: AppColors.lightSurface,
+    labelTextStyle: WidgetStateProperty.all(
+      const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+    ),
+  ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: AppColors.lightAccent.withValues(alpha: 0.92),
+    contentTextStyle: const TextStyle(color: Colors.white),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    behavior: SnackBarBehavior.floating,
+  ),
+  useMaterial3: true,
+);
+
+ThemeData darkTheme() => ThemeData(
+  brightness: Brightness.dark,
+  scaffoldBackgroundColor: AppColors.darkBgBot,
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: AppColors.darkAccentCyan,
+    brightness: Brightness.dark,
+    primary: AppColors.darkAccentCyan,
+    secondary: AppColors.darkAccentAmber,
+    surface: AppColors.darkSurface,
+    error: AppColors.error,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AppColors.darkAppBar,
+    foregroundColor: AppColors.darkTextPrimary,
+    elevation: 0,
+    centerTitle: true,
+  ),
+  navigationBarTheme: NavigationBarThemeData(
+    backgroundColor: AppColors.darkAppBar,
+    indicatorColor: AppColors.darkSurfaceSoft,
+    labelTextStyle: WidgetStateProperty.all(
+      const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+    ),
+  ),
+  snackBarTheme: SnackBarThemeData(
+    backgroundColor: AppColors.error.withValues(alpha: 0.9),
+    contentTextStyle: const TextStyle(color: AppColors.darkTextPrimary),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    behavior: SnackBarBehavior.floating,
+  ),
+  useMaterial3: true,
+);
+
+// ─── Entry Point ──────────────────────────────────────────────────────────────
 
 void main() {
   runApp(const CarControlApp());
 }
 
-class CarControlApp extends StatelessWidget {
+class CarControlApp extends StatefulWidget {
   const CarControlApp({super.key});
+
+  @override
+  State<CarControlApp> createState() => _CarControlAppState();
+
+  /// Allow descendants to call toggleTheme / read isDark via this helper.
+  static _CarControlAppState of(BuildContext context) =>
+      context.findAncestorStateOfType<_CarControlAppState>()!;
+}
+
+class _CarControlAppState extends State<CarControlApp> {
+  bool isDarkMode = true;   // default: dark
+
+  void toggleTheme() => setState(() => isDarkMode = !isDarkMode);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Car Control App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: AppColors.backgroundBottom,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.accentCyan,
-          brightness: Brightness.dark,
-          primary: AppColors.accentCyan,
-          secondary: AppColors.accentAmber,
-          surface: AppColors.surface,
-          error: AppColors.error,
-        ),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: AppColors.appBar,
-          foregroundColor: AppColors.textPrimary,
-          elevation: 0,
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: AppColors.error.withValues(alpha: 0.9),
-          contentTextStyle: const TextStyle(color: AppColors.textPrimary),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          behavior: SnackBarBehavior.floating,
-        ),
-        useMaterial3: true,
-      ),
-      home: const AppShell(),
+      theme: lightTheme(),
+      darkTheme: darkTheme(),
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      home: AppShell(isDarkMode: isDarkMode, onToggleTheme: toggleTheme),
     );
   }
 }
+
+// ─── Preferences Model ────────────────────────────────────────────────────────
 
 class AppPreferences {
   final String esp32IP;
   final int commandTimeoutMs;
   final bool autoReconnect;
   final bool hapticsEnabled;
+  final int reconnectIntervalSec;
+  final String controllerName;
 
   const AppPreferences({
     required this.esp32IP,
     required this.commandTimeoutMs,
     required this.autoReconnect,
     required this.hapticsEnabled,
+    required this.reconnectIntervalSec,
+    required this.controllerName,
   });
 
   static const defaults = AppPreferences(
@@ -83,6 +160,8 @@ class AppPreferences {
     commandTimeoutMs: 1000,
     autoReconnect: true,
     hapticsEnabled: true,
+    reconnectIntervalSec: 8,
+    controllerName: 'Black Box Pilot',
   );
 
   AppPreferences copyWith({
@@ -90,18 +169,31 @@ class AppPreferences {
     int? commandTimeoutMs,
     bool? autoReconnect,
     bool? hapticsEnabled,
+    int? reconnectIntervalSec,
+    String? controllerName,
   }) {
     return AppPreferences(
       esp32IP: esp32IP ?? this.esp32IP,
       commandTimeoutMs: commandTimeoutMs ?? this.commandTimeoutMs,
       autoReconnect: autoReconnect ?? this.autoReconnect,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
+      reconnectIntervalSec: reconnectIntervalSec ?? this.reconnectIntervalSec,
+      controllerName: controllerName ?? this.controllerName,
     );
   }
 }
 
+// ─── App Shell ────────────────────────────────────────────────────────────────
+
 class AppShell extends StatefulWidget {
-  const AppShell({super.key});
+  final bool isDarkMode;
+  final VoidCallback onToggleTheme;
+
+  const AppShell({
+    super.key,
+    required this.isDarkMode,
+    required this.onToggleTheme,
+  });
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -111,11 +203,8 @@ class _AppShellState extends State<AppShell> {
   int selectedTab = 0;
   AppPreferences preferences = AppPreferences.defaults;
 
-  void updatePreferences(AppPreferences newPreferences) {
-    setState(() {
-      preferences = newPreferences;
-    });
-  }
+  void updatePreferences(AppPreferences newPreferences) =>
+      setState(() => preferences = newPreferences);
 
   @override
   Widget build(BuildContext context) {
@@ -128,25 +217,26 @@ class _AppShellState extends State<AppShell> {
             commandTimeout: Duration(milliseconds: preferences.commandTimeoutMs),
             autoReconnect: preferences.autoReconnect,
             hapticsEnabled: preferences.hapticsEnabled,
+            reconnectIntervalSec: preferences.reconnectIntervalSec,
+            isDarkMode: widget.isDarkMode,
+            onToggleTheme: widget.onToggleTheme,
           ),
           SettingsPage(
             preferences: preferences,
             onSave: updatePreferences,
+            isDarkMode: widget.isDarkMode,
+            onToggleTheme: widget.onToggleTheme,
           ),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selectedTab,
-        onDestinationSelected: (index) {
-          setState(() {
-            selectedTab = index;
-          });
-        },
+        onDestinationSelected: (i) => setState(() => selectedTab = i),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.sports_esports_outlined),
+            selectedIcon: Icon(Icons.sports_esports),
+            label: 'Control',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
@@ -159,11 +249,16 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
+// ─── Car Control Page ─────────────────────────────────────────────────────────
+
 class CarControlPage extends StatefulWidget {
   final String esp32IP;
   final Duration commandTimeout;
   final bool autoReconnect;
   final bool hapticsEnabled;
+  final int reconnectIntervalSec;
+  final bool isDarkMode;
+  final VoidCallback onToggleTheme;
 
   const CarControlPage({
     super.key,
@@ -171,6 +266,9 @@ class CarControlPage extends StatefulWidget {
     required this.commandTimeout,
     required this.autoReconnect,
     required this.hapticsEnabled,
+    required this.reconnectIntervalSec,
+    required this.isDarkMode,
+    required this.onToggleTheme,
   });
 
   @override
@@ -179,29 +277,25 @@ class CarControlPage extends StatefulWidget {
 
 class _CarControlPageState extends State<CarControlPage> {
   Timer? autoReconnectTimer;
-
-  String connectionStatus = "Disconnected";
+  String connectionStatus = 'Disconnected';
   bool isConnected = false;
-  String lastCommand = "STOP";
-  
+  String lastCommand = 'STOP';
+
   @override
   void initState() {
     super.initState();
     checkConnection();
-    configureAutoReconnect();
+    _configureReconnect();
   }
 
   @override
   void didUpdateWidget(covariant CarControlPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (oldWidget.autoReconnect != widget.autoReconnect) {
-      configureAutoReconnect();
+    if (oldWidget.autoReconnect != widget.autoReconnect ||
+        oldWidget.reconnectIntervalSec != widget.reconnectIntervalSec) {
+      _configureReconnect();
     }
-
-    if (oldWidget.esp32IP != widget.esp32IP) {
-      checkConnection();
-    }
+    if (oldWidget.esp32IP != widget.esp32IP) checkConnection();
   }
 
   @override
@@ -210,12 +304,13 @@ class _CarControlPageState extends State<CarControlPage> {
     super.dispose();
   }
 
-  void configureAutoReconnect() {
+  void _configureReconnect() {
     autoReconnectTimer?.cancel();
     if (widget.autoReconnect) {
-      autoReconnectTimer = Timer.periodic(const Duration(seconds: 8), (_) {
-        checkConnection();
-      });
+      autoReconnectTimer = Timer.periodic(
+        Duration(seconds: widget.reconnectIntervalSec),
+        (_) => checkConnection(),
+      );
     }
   }
 
@@ -224,597 +319,297 @@ class _CarControlPageState extends State<CarControlPage> {
       final response = await http
           .get(Uri.parse('http://${widget.esp32IP}/stop'))
           .timeout(const Duration(seconds: 3));
-      
-      if (response.statusCode == 200) {
-        setState(() {
-          connectionStatus = "Connected to ESP32";
-          isConnected = true;
-        });
-      } else {
-        setState(() {
-          connectionStatus = "ESP32 Error";
-          isConnected = false;
-        });
-      }
-    } catch (e) {
       setState(() {
-        connectionStatus = "ESP32 Not Found";
+        isConnected = response.statusCode == 200;
+        connectionStatus =
+            isConnected ? 'Connected to ESP32' : 'ESP32 Error';
+      });
+    } catch (_) {
+      setState(() {
         isConnected = false;
+        connectionStatus = 'ESP32 Not Found';
       });
     }
   }
 
-
   Future<void> sendCommand(String command) async {
     try {
-      final url = 'http://${widget.esp32IP}/$command';
-      final response = await http.get(Uri.parse(url)).timeout(widget.commandTimeout);
-      
+      final response = await http
+          .get(Uri.parse('http://${widget.esp32IP}/$command'))
+          .timeout(widget.commandTimeout);
       setState(() {
-        lastCommand = response.body; 
+        lastCommand = response.body;
         if (!isConnected) {
           isConnected = true;
-          connectionStatus = "Connected to ESP32";
+          connectionStatus = 'Connected to ESP32';
         }
       });
     } catch (e) {
       setState(() {
-        connectionStatus = "Connection Failed";
+        connectionStatus = 'Connection Failed';
         isConnected = false;
       });
-      
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send command: $e'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 2),
-          ),
+          SnackBar(content: Text('Command failed: $e'),
+              duration: const Duration(seconds: 2)),
         );
       }
     }
   }
 
+  // ── Build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
+    final dark = widget.isDarkMode;
     final statusColor = isConnected ? AppColors.success : AppColors.error;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Car Control App - Black Box',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.backgroundTop,
-              AppColors.backgroundBottom,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height - 
-                          MediaQuery.of(context).padding.top - 
-                          kToolbarHeight,
-              ),
-              child: IntrinsicHeight(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface.withValues(alpha: 0.62),
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color: statusColor,
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: statusColor.withValues(alpha: 0.16),
-                              blurRadius: 16,
-                              offset: const Offset(0, 8),
-                            ),
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.35),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.surfaceSoft.withValues(alpha: 0.48),
-                              AppColors.surface.withValues(alpha: 0.35),
-                            ],
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(
-                                      isConnected ? Icons.wifi : Icons.wifi_off,
-                                      color: statusColor,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      connectionStatus,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: statusColor,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.refresh, size: 20),
-                                  onPressed: checkConnection,
-                                  color: AppColors.accentCyan,
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Last Command:',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textMuted,
-                                  ),
-                                ),
-                                Text(
-                                  lastCommand,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    Expanded(
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ControlButton(
-                                icon: Icons.arrow_upward,
-                                label: 'FORWARD',
-                                onPressed: () => sendCommand('forward'),
-                                color: AppColors.accentTeal,
-                                hapticsEnabled: widget.hapticsEnabled,
-                              ),
-                              
-                              const SizedBox(height: 16),
-                              
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ControlButton(
-                                    icon: Icons.arrow_back,
-                                    label: 'LEFT',
-                                    onPressed: () => sendCommand('left'),
-                                    color: AppColors.accentAmber,
-                                    hapticsEnabled: widget.hapticsEnabled,
-                                  ),
-                                  const SizedBox(width: 24),
-                                  ControlButton(
-                                    icon: Icons.arrow_forward,
-                                    label: 'RIGHT',
-                                    onPressed: () => sendCommand('right'),
-                                    color: AppColors.accentCyan,
-                                    hapticsEnabled: widget.hapticsEnabled,
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: 16),
-                              
-                              ControlButton(
-                                icon: Icons.arrow_downward,
-                                label: 'BACKWARD',
-                                onPressed: () => sendCommand('backward'),
-                                color: const Color(0xFF4A8CFF),
-                                hapticsEnabled: widget.hapticsEnabled,
-                              ),
-                              
-                              const SizedBox(height: 24),
-                              
-                              StopButton(
-                                onPressed: () => sendCommand('stop'),
-                                hapticsEnabled: widget.hapticsEnabled,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface.withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.accentCyan.withValues(alpha: 0.18),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.memory,
-                              size: 14,
-                              color: AppColors.textMuted,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'ESP32: ${widget.esp32IP}',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                color: AppColors.textMuted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+        flexibleSpace: dark
+            ? null
+            : Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.lightHeaderTop, AppColors.lightHeaderBot],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
+              ),
+        title: const Text(
+          'Car Control — Black Box',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+        ),
+        actions: [
+          IconButton(
+            tooltip: dark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
+            icon: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: Icon(
+                dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                key: ValueKey(dark),
+                color: dark ? AppColors.darkAccentCyan : Colors.white,
               ),
             ),
+            onPressed: widget.onToggleTheme,
           ),
+          const SizedBox(width: 4),
+        ],
+      ),
+      body: _buildBody(dark, statusColor),
+    );
+  }
+
+  Widget _buildBody(bool dark, Color statusColor) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: dark
+              ? [AppColors.darkBgTop, AppColors.darkBgBot]
+              : [AppColors.lightBg, const Color(0xFFDDE8F8)],
         ),
       ),
-    );
-  }
-}
-
-class SettingsPage extends StatefulWidget {
-  final AppPreferences preferences;
-  final ValueChanged<AppPreferences> onSave;
-
-  const SettingsPage({
-    super.key,
-    required this.preferences,
-    required this.onSave,
-  });
-
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  late TextEditingController ipController;
-  late double timeoutMs;
-  late bool autoReconnect;
-  late bool hapticsEnabled;
-
-  String? ipError;
-  DateTime? lastSavedAt;
-
-  @override
-  void initState() {
-    super.initState();
-    ipController = TextEditingController();
-    syncFromPreferences(widget.preferences);
-  }
-
-  @override
-  void didUpdateWidget(covariant SettingsPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.preferences.esp32IP != widget.preferences.esp32IP ||
-        oldWidget.preferences.commandTimeoutMs != widget.preferences.commandTimeoutMs ||
-        oldWidget.preferences.autoReconnect != widget.preferences.autoReconnect ||
-        oldWidget.preferences.hapticsEnabled != widget.preferences.hapticsEnabled) {
-      syncFromPreferences(widget.preferences);
-    }
-  }
-
-  @override
-  void dispose() {
-    ipController.dispose();
-    super.dispose();
-  }
-
-  void syncFromPreferences(AppPreferences preferences) {
-    ipController.text = preferences.esp32IP;
-    timeoutMs = preferences.commandTimeoutMs.toDouble();
-    autoReconnect = preferences.autoReconnect;
-    hapticsEnabled = preferences.hapticsEnabled;
-  }
-
-  bool isValidIpv4(String value) {
-    final ipRegex = RegExp(
-      r'^((25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(25[0-5]|2[0-4]\d|[01]?\d?\d)$',
-    );
-    return ipRegex.hasMatch(value);
-  }
-
-  void saveSettings() {
-    final ip = ipController.text.trim();
-    if (!isValidIpv4(ip)) {
-      setState(() {
-        ipError = 'Enter a valid IPv4 address (example: 192.168.1.10)';
-      });
-      return;
-    }
-
-    widget.onSave(
-      AppPreferences(
-        esp32IP: ip,
-        commandTimeoutMs: timeoutMs.round(),
-        autoReconnect: autoReconnect,
-        hapticsEnabled: hapticsEnabled,
-      ),
-    );
-
-    setState(() {
-      ipError = null;
-      lastSavedAt = DateTime.now();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Settings saved')),
-    );
-  }
-
-  void restoreDefaults() {
-    final defaults = AppPreferences.defaults;
-    widget.onSave(defaults);
-    setState(() {
-      syncFromPreferences(defaults);
-      ipError = null;
-      lastSavedAt = DateTime.now();
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Default settings restored')),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Profile & Settings',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppColors.backgroundTop,
-              AppColors.backgroundBottom,
-            ],
-          ),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.accentCyan.withValues(alpha: 0.24),
-                ),
-              ),
-              child: const Row(
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top -
+                  kToolbarHeight - 80,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppColors.accentCyan,
-                    child: Icon(Icons.person, color: AppColors.backgroundBottom),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Black Box Pilot',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Fine-tune connection and control experience',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildStatusCard(dark, statusColor),
+                  Expanded(child: _buildControlPad(dark)),
+                  _buildFooterChip(dark),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Status card ─────────────────────────────────────────────────────────────
+
+  Widget _buildStatusCard(bool dark, Color statusColor) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: dark
+              ? AppColors.darkSurface.withValues(alpha: 0.62)
+              : AppColors.lightBgCard,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: statusColor, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: statusColor.withValues(alpha: dark ? 0.18 : 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(14),
+                color: statusColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
               ),
+              child: Icon(
+                isConnected ? Icons.wifi : Icons.wifi_off,
+                color: statusColor,
+                size: 18,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Connection',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: ipController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: AppColors.textPrimary),
-                    decoration: InputDecoration(
-                      labelText: 'ESP32 IP Address',
-                      hintText: '192.168.1.10',
-                      errorText: ipError,
-                      prefixIcon: const Icon(Icons.router, color: AppColors.accentCyan),
-                      filled: true,
-                      fillColor: Colors.black.withValues(alpha: 0.2),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Text(
-                    'Command Timeout: ${timeoutMs.round()} ms',
-                    style: const TextStyle(color: AppColors.textPrimary),
-                  ),
-                  Slider(
-                    value: timeoutMs,
-                    min: 500,
-                    max: 5000,
-                    divisions: 18,
-                    activeColor: AppColors.accentCyan,
-                    inactiveColor: AppColors.textMuted.withValues(alpha: 0.35),
-                    label: '${timeoutMs.round()} ms',
-                    onChanged: (value) {
-                      setState(() {
-                        timeoutMs = value;
-                      });
-                    },
-                  ),
-                  SwitchListTile.adaptive(
-                    value: autoReconnect,
-                    activeColor: AppColors.accentTeal,
-                    title: const Text(
-                      'Auto Reconnect',
-                      style: TextStyle(color: AppColors.textPrimary),
+                    connectionStatus,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: statusColor,
                     ),
-                    subtitle: const Text(
-                      'Refresh connection every 8 seconds on Home tab',
-                      style: TextStyle(color: AppColors.textMuted),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Last: $lastCommand',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: dark
+                          ? AppColors.darkTextMuted
+                          : AppColors.lightTextMuted,
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        autoReconnect = value;
-                      });
-                    },
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: SwitchListTile.adaptive(
-                value: hapticsEnabled,
-                activeColor: AppColors.accentAmber,
-                title: const Text(
-                  'Haptic Feedback',
-                  style: TextStyle(color: AppColors.textPrimary),
-                ),
-                subtitle: const Text(
-                  'Vibration feedback when pressing control buttons',
-                  style: TextStyle(color: AppColors.textMuted),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    hapticsEnabled = value;
-                  });
-                },
-              ),
+            IconButton(
+              icon: Icon(Icons.refresh_rounded,
+                  size: 20,
+                  color: dark
+                      ? AppColors.darkAccentCyan
+                      : AppColors.lightAccent),
+              onPressed: checkConnection,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── D-pad control ──────────────────────────────────────────────────────────
+
+  Widget _buildControlPad(bool dark) {
+    final btnColor = dark ? AppColors.btnDark : AppColors.btnLight;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ControlButton(
+              icon: Icons.arrow_upward_rounded,
+              label: 'FORWARD',
+              onPressed: () => sendCommand('forward'),
+              color: btnColor,
+              isDark: dark,
+              hapticsEnabled: widget.hapticsEnabled,
             ),
             const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.surface.withValues(alpha: 0.45),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: saveSettings,
-                    icon: const Icon(Icons.save_outlined),
-                    label: const Text('Save Settings'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentCyan,
-                      foregroundColor: AppColors.backgroundBottom,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: restoreDefaults,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Restore Defaults'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.textPrimary,
-                      side: BorderSide(
-                        color: AppColors.textMuted.withValues(alpha: 0.45),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                  if (lastSavedAt != null) ...[
-                    const SizedBox(height: 10),
-                    Text(
-                      'Last updated: ${lastSavedAt!.hour.toString().padLeft(2, '0')}:${lastSavedAt!.minute.toString().padLeft(2, '0')}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textMuted,
-                      ),
-                    ),
-                  ],
-                ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ControlButton(
+                  icon: Icons.arrow_back_rounded,
+                  label: 'LEFT',
+                  onPressed: () => sendCommand('left'),
+                  color: btnColor,
+                  isDark: dark,
+                  hapticsEnabled: widget.hapticsEnabled,
+                ),
+                const SizedBox(width: 28),
+                StopButton(
+                  onPressed: () => sendCommand('stop'),
+                  hapticsEnabled: widget.hapticsEnabled,
+                ),
+                const SizedBox(width: 28),
+                ControlButton(
+                  icon: Icons.arrow_forward_rounded,
+                  label: 'RIGHT',
+                  onPressed: () => sendCommand('right'),
+                  color: btnColor,
+                  isDark: dark,
+                  hapticsEnabled: widget.hapticsEnabled,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ControlButton(
+              icon: Icons.arrow_downward_rounded,
+              label: 'BACKWARD',
+              onPressed: () => sendCommand('backward'),
+              color: btnColor,
+              isDark: dark,
+              hapticsEnabled: widget.hapticsEnabled,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Footer chip ────────────────────────────────────────────────────────────
+
+  Widget _buildFooterChip(bool dark) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: dark
+              ? AppColors.darkSurface.withValues(alpha: 0.35)
+              : AppColors.lightSurface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: dark
+                ? AppColors.darkAccentCyan.withValues(alpha: 0.18)
+                : AppColors.lightBorder,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.memory,
+                size: 14,
+                color: dark
+                    ? AppColors.darkTextMuted
+                    : AppColors.lightTextMuted),
+            const SizedBox(width: 6),
+            Text(
+              'ESP32: ${widget.esp32IP}',
+              style: TextStyle(
+                fontSize: 11,
+                color: dark
+                    ? AppColors.darkTextMuted
+                    : AppColors.lightTextMuted,
               ),
             ),
           ],
@@ -824,11 +619,14 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
+// ─── Control Button ───────────────────────────────────────────────────────────
+
 class ControlButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
   final Color color;
+  final bool isDark;
   final bool hapticsEnabled;
 
   const ControlButton({
@@ -837,6 +635,7 @@ class ControlButton extends StatefulWidget {
     required this.label,
     required this.onPressed,
     required this.color,
+    required this.isDark,
     required this.hapticsEnabled,
   });
 
@@ -845,69 +644,56 @@ class ControlButton extends StatefulWidget {
 }
 
 class _ControlButtonState extends State<ControlButton> {
-  bool isPressed = false;
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
+    final bg = widget.isDark
+        ? widget.color.withValues(alpha: _pressed ? 0.95 : 0.78)
+        : widget.color.withValues(alpha: _pressed ? 1.0 : 0.85);
+
     return GestureDetector(
       onTapDown: (_) {
-        setState(() => isPressed = true);
-        if (widget.hapticsEnabled) {
-          HapticFeedback.selectionClick();
-        }
+        setState(() => _pressed = true);
+        if (widget.hapticsEnabled) HapticFeedback.selectionClick();
         widget.onPressed();
       },
-      onTapUp: (_) {
-        setState(() => isPressed = false);
-      },
-      onTapCancel: () {
-        setState(() => isPressed = false);
-      },
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        width: 100,
-        height: 100,
+        duration: const Duration(milliseconds: 90),
+        width: 90,
+        height: 90,
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isPressed
-                ? [widget.color.withValues(alpha: 0.78), widget.color]
-                : [widget.color, widget.color.withValues(alpha: 0.72)],
-          ),
+          color: bg,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.16),
-            width: 1,
+            color: widget.isDark
+                ? Colors.white.withValues(alpha: 0.14)
+                : widget.color.withValues(alpha: 0.35),
+            width: 1.5,
           ),
-          boxShadow: isPressed
+          boxShadow: _pressed
               ? []
               : [
                   BoxShadow(
-                    color: widget.color.withValues(alpha: 0.5),
-                    blurRadius: 16,
-                    offset: const Offset(0, 8),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 10),
+                    color: widget.color.withValues(
+                        alpha: widget.isDark ? 0.45 : 0.25),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              widget.icon,
-              size: 36,
-              color: Colors.white,
-            ),
-            const SizedBox(height: 6),
+            Icon(widget.icon, size: 34,
+                color: widget.isDark ? Colors.white : Colors.white),
+            const SizedBox(height: 5),
             Text(
               widget.label,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 letterSpacing: 0.5,
@@ -919,6 +705,8 @@ class _ControlButtonState extends State<ControlButton> {
     );
   }
 }
+
+// ─── Stop Button ──────────────────────────────────────────────────────────────
 
 class StopButton extends StatefulWidget {
   final VoidCallback onPressed;
@@ -935,33 +723,27 @@ class StopButton extends StatefulWidget {
 }
 
 class _StopButtonState extends State<StopButton> {
-  bool isPressed = false;
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) {
-        setState(() => isPressed = true);
-        if (widget.hapticsEnabled) {
-          HapticFeedback.heavyImpact();
-        }
+        setState(() => _pressed = true);
+        if (widget.hapticsEnabled) HapticFeedback.heavyImpact();
         widget.onPressed();
       },
-      onTapUp: (_) {
-        setState(() => isPressed = false);
-      },
-      onTapCancel: () {
-        setState(() => isPressed = false);
-      },
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        width: 130,
-        height: 130,
+        duration: const Duration(milliseconds: 90),
+        width: 100,
+        height: 100,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: isPressed
+            colors: _pressed
                 ? [AppColors.stopSecondary, AppColors.stopPrimary]
                 : [AppColors.stopPrimary, AppColors.stopSecondary],
           ),
@@ -970,34 +752,25 @@ class _StopButtonState extends State<StopButton> {
             color: Colors.white.withValues(alpha: 0.15),
             width: 1.5,
           ),
-          boxShadow: isPressed
+          boxShadow: _pressed
               ? []
               : [
                   BoxShadow(
-                    color: AppColors.stopPrimary.withValues(alpha: 0.6),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    blurRadius: 20,
-                    offset: const Offset(0, 12),
+                    color: AppColors.stopPrimary.withValues(alpha: 0.55),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
                   ),
                 ],
         ),
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.stop_circle_outlined,
-              size: 50,
-              color: Colors.white,
-            ),
-            SizedBox(height: 6),
+            Icon(Icons.stop_circle_outlined, size: 42, color: Colors.white),
+            SizedBox(height: 4),
             Text(
               'STOP',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 letterSpacing: 2,
