@@ -72,7 +72,7 @@ class CarControlPage extends StatefulWidget {
 }
 
 class _CarControlPageState extends State<CarControlPage> {
-  String esp32IP = "10.233.100.213"; 
+  String esp32IP = "10.172.70.213"; 
   
   String connectionStatus = "Disconnected";
   bool isConnected = false;
