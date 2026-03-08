@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 
@@ -59,21 +60,126 @@ class CarControlApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const CarControlPage(),
+      home: const AppShell(),
+    );
+  }
+}
+
+class AppPreferences {
+  final String esp32IP;
+  final int commandTimeoutMs;
+  final bool autoReconnect;
+  final bool hapticsEnabled;
+
+  const AppPreferences({
+    required this.esp32IP,
+    required this.commandTimeoutMs,
+    required this.autoReconnect,
+    required this.hapticsEnabled,
+  });
+
+  static const defaults = AppPreferences(
+    esp32IP: '10.172.70.213',
+    commandTimeoutMs: 1000,
+    autoReconnect: true,
+    hapticsEnabled: true,
+  );
+
+  AppPreferences copyWith({
+    String? esp32IP,
+    int? commandTimeoutMs,
+    bool? autoReconnect,
+    bool? hapticsEnabled,
+  }) {
+    return AppPreferences(
+      esp32IP: esp32IP ?? this.esp32IP,
+      commandTimeoutMs: commandTimeoutMs ?? this.commandTimeoutMs,
+      autoReconnect: autoReconnect ?? this.autoReconnect,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
+    );
+  }
+}
+
+class AppShell extends StatefulWidget {
+  const AppShell({super.key});
+
+  @override
+  State<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends State<AppShell> {
+  int selectedTab = 0;
+  AppPreferences preferences = AppPreferences.defaults;
+
+  void updatePreferences(AppPreferences newPreferences) {
+    setState(() {
+      preferences = newPreferences;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: selectedTab,
+        children: [
+          CarControlPage(
+            esp32IP: preferences.esp32IP,
+            commandTimeout: Duration(milliseconds: preferences.commandTimeoutMs),
+            autoReconnect: preferences.autoReconnect,
+            hapticsEnabled: preferences.hapticsEnabled,
+          ),
+          SettingsPage(
+            preferences: preferences,
+            onSave: updatePreferences,
+          ),
+        ],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedTab,
+        onDestinationSelected: (index) {
+          setState(() {
+            selectedTab = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
+        ],
+      ),
     );
   }
 }
 
 class CarControlPage extends StatefulWidget {
-  const CarControlPage({super.key});
+  final String esp32IP;
+  final Duration commandTimeout;
+  final bool autoReconnect;
+  final bool hapticsEnabled;
+
+  const CarControlPage({
+    super.key,
+    required this.esp32IP,
+    required this.commandTimeout,
+    required this.autoReconnect,
+    required this.hapticsEnabled,
+  });
 
   @override
   State<CarControlPage> createState() => _CarControlPageState();
 }
 
 class _CarControlPageState extends State<CarControlPage> {
-  String esp32IP = "10.172.70.213"; 
-  
+  Timer? autoReconnectTimer;
+
   String connectionStatus = "Disconnected";
   bool isConnected = false;
   String lastCommand = "STOP";
@@ -82,12 +188,41 @@ class _CarControlPageState extends State<CarControlPage> {
   void initState() {
     super.initState();
     checkConnection();
+    configureAutoReconnect();
+  }
+
+  @override
+  void didUpdateWidget(covariant CarControlPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.autoReconnect != widget.autoReconnect) {
+      configureAutoReconnect();
+    }
+
+    if (oldWidget.esp32IP != widget.esp32IP) {
+      checkConnection();
+    }
+  }
+
+  @override
+  void dispose() {
+    autoReconnectTimer?.cancel();
+    super.dispose();
+  }
+
+  void configureAutoReconnect() {
+    autoReconnectTimer?.cancel();
+    if (widget.autoReconnect) {
+      autoReconnectTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+        checkConnection();
+      });
+    }
   }
 
   Future<void> checkConnection() async {
     try {
       final response = await http
-          .get(Uri.parse('http://$esp32IP/stop'))
+          .get(Uri.parse('http://${widget.esp32IP}/stop'))
           .timeout(const Duration(seconds: 3));
       
       if (response.statusCode == 200) {
@@ -112,8 +247,8 @@ class _CarControlPageState extends State<CarControlPage> {
 
   Future<void> sendCommand(String command) async {
     try {
-      final url = 'http://$esp32IP/$command';
-      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 1));
+      final url = 'http://${widget.esp32IP}/$command';
+      final response = await http.get(Uri.parse(url)).timeout(widget.commandTimeout);
       
       setState(() {
         lastCommand = response.body; 
@@ -276,6 +411,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                 label: 'FORWARD',
                                 onPressed: () => sendCommand('forward'),
                                 color: AppColors.accentTeal,
+                                hapticsEnabled: widget.hapticsEnabled,
                               ),
                               
                               const SizedBox(height: 16),
@@ -288,6 +424,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                     label: 'LEFT',
                                     onPressed: () => sendCommand('left'),
                                     color: AppColors.accentAmber,
+                                    hapticsEnabled: widget.hapticsEnabled,
                                   ),
                                   const SizedBox(width: 24),
                                   ControlButton(
@@ -295,6 +432,7 @@ class _CarControlPageState extends State<CarControlPage> {
                                     label: 'RIGHT',
                                     onPressed: () => sendCommand('right'),
                                     color: AppColors.accentCyan,
+                                    hapticsEnabled: widget.hapticsEnabled,
                                   ),
                                 ],
                               ),
@@ -306,12 +444,14 @@ class _CarControlPageState extends State<CarControlPage> {
                                 label: 'BACKWARD',
                                 onPressed: () => sendCommand('backward'),
                                 color: const Color(0xFF4A8CFF),
+                                hapticsEnabled: widget.hapticsEnabled,
                               ),
                               
                               const SizedBox(height: 24),
                               
                               StopButton(
                                 onPressed: () => sendCommand('stop'),
+                                hapticsEnabled: widget.hapticsEnabled,
                               ),
                             ],
                           ),
@@ -340,7 +480,7 @@ class _CarControlPageState extends State<CarControlPage> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'ESP32: $esp32IP',
+                              'ESP32: ${widget.esp32IP}',
                               style: const TextStyle(
                                 fontSize: 11,
                                 color: AppColors.textMuted,
@@ -361,11 +501,335 @@ class _CarControlPageState extends State<CarControlPage> {
   }
 }
 
+class SettingsPage extends StatefulWidget {
+  final AppPreferences preferences;
+  final ValueChanged<AppPreferences> onSave;
+
+  const SettingsPage({
+    super.key,
+    required this.preferences,
+    required this.onSave,
+  });
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  late TextEditingController ipController;
+  late double timeoutMs;
+  late bool autoReconnect;
+  late bool hapticsEnabled;
+
+  String? ipError;
+  DateTime? lastSavedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    ipController = TextEditingController();
+    syncFromPreferences(widget.preferences);
+  }
+
+  @override
+  void didUpdateWidget(covariant SettingsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.preferences.esp32IP != widget.preferences.esp32IP ||
+        oldWidget.preferences.commandTimeoutMs != widget.preferences.commandTimeoutMs ||
+        oldWidget.preferences.autoReconnect != widget.preferences.autoReconnect ||
+        oldWidget.preferences.hapticsEnabled != widget.preferences.hapticsEnabled) {
+      syncFromPreferences(widget.preferences);
+    }
+  }
+
+  @override
+  void dispose() {
+    ipController.dispose();
+    super.dispose();
+  }
+
+  void syncFromPreferences(AppPreferences preferences) {
+    ipController.text = preferences.esp32IP;
+    timeoutMs = preferences.commandTimeoutMs.toDouble();
+    autoReconnect = preferences.autoReconnect;
+    hapticsEnabled = preferences.hapticsEnabled;
+  }
+
+  bool isValidIpv4(String value) {
+    final ipRegex = RegExp(
+      r'^((25[0-5]|2[0-4]\d|[01]?\d?\d)\.){3}(25[0-5]|2[0-4]\d|[01]?\d?\d)$',
+    );
+    return ipRegex.hasMatch(value);
+  }
+
+  void saveSettings() {
+    final ip = ipController.text.trim();
+    if (!isValidIpv4(ip)) {
+      setState(() {
+        ipError = 'Enter a valid IPv4 address (example: 192.168.1.10)';
+      });
+      return;
+    }
+
+    widget.onSave(
+      AppPreferences(
+        esp32IP: ip,
+        commandTimeoutMs: timeoutMs.round(),
+        autoReconnect: autoReconnect,
+        hapticsEnabled: hapticsEnabled,
+      ),
+    );
+
+    setState(() {
+      ipError = null;
+      lastSavedAt = DateTime.now();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Settings saved')),
+    );
+  }
+
+  void restoreDefaults() {
+    final defaults = AppPreferences.defaults;
+    widget.onSave(defaults);
+    setState(() {
+      syncFromPreferences(defaults);
+      ipError = null;
+      lastSavedAt = DateTime.now();
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Default settings restored')),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Profile & Settings',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.backgroundTop,
+              AppColors.backgroundBottom,
+            ],
+          ),
+        ),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.accentCyan.withValues(alpha: 0.24),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: AppColors.accentCyan,
+                    child: Icon(Icons.person, color: AppColors.backgroundBottom),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Black Box Pilot',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'Fine-tune connection and control experience',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Connection',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: ipController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    decoration: InputDecoration(
+                      labelText: 'ESP32 IP Address',
+                      hintText: '192.168.1.10',
+                      errorText: ipError,
+                      prefixIcon: const Icon(Icons.router, color: AppColors.accentCyan),
+                      filled: true,
+                      fillColor: Colors.black.withValues(alpha: 0.2),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Command Timeout: ${timeoutMs.round()} ms',
+                    style: const TextStyle(color: AppColors.textPrimary),
+                  ),
+                  Slider(
+                    value: timeoutMs,
+                    min: 500,
+                    max: 5000,
+                    divisions: 18,
+                    activeColor: AppColors.accentCyan,
+                    inactiveColor: AppColors.textMuted.withValues(alpha: 0.35),
+                    label: '${timeoutMs.round()} ms',
+                    onChanged: (value) {
+                      setState(() {
+                        timeoutMs = value;
+                      });
+                    },
+                  ),
+                  SwitchListTile.adaptive(
+                    value: autoReconnect,
+                    activeColor: AppColors.accentTeal,
+                    title: const Text(
+                      'Auto Reconnect',
+                      style: TextStyle(color: AppColors.textPrimary),
+                    ),
+                    subtitle: const Text(
+                      'Refresh connection every 8 seconds on Home tab',
+                      style: TextStyle(color: AppColors.textMuted),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        autoReconnect = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: SwitchListTile.adaptive(
+                value: hapticsEnabled,
+                activeColor: AppColors.accentAmber,
+                title: const Text(
+                  'Haptic Feedback',
+                  style: TextStyle(color: AppColors.textPrimary),
+                ),
+                subtitle: const Text(
+                  'Vibration feedback when pressing control buttons',
+                  style: TextStyle(color: AppColors.textMuted),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    hapticsEnabled = value;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: saveSettings,
+                    icon: const Icon(Icons.save_outlined),
+                    label: const Text('Save Settings'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.accentCyan,
+                      foregroundColor: AppColors.backgroundBottom,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: restoreDefaults,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Restore Defaults'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.textPrimary,
+                      side: BorderSide(
+                        color: AppColors.textMuted.withValues(alpha: 0.45),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                  if (lastSavedAt != null) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      'Last updated: ${lastSavedAt!.hour.toString().padLeft(2, '0')}:${lastSavedAt!.minute.toString().padLeft(2, '0')}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class ControlButton extends StatefulWidget {
   final IconData icon;
   final String label;
   final VoidCallback onPressed;
   final Color color;
+  final bool hapticsEnabled;
 
   const ControlButton({
     super.key,
@@ -373,6 +837,7 @@ class ControlButton extends StatefulWidget {
     required this.label,
     required this.onPressed,
     required this.color,
+    required this.hapticsEnabled,
   });
 
   @override
@@ -387,6 +852,9 @@ class _ControlButtonState extends State<ControlButton> {
     return GestureDetector(
       onTapDown: (_) {
         setState(() => isPressed = true);
+        if (widget.hapticsEnabled) {
+          HapticFeedback.selectionClick();
+        }
         widget.onPressed();
       },
       onTapUp: (_) {
@@ -454,10 +922,12 @@ class _ControlButtonState extends State<ControlButton> {
 
 class StopButton extends StatefulWidget {
   final VoidCallback onPressed;
+  final bool hapticsEnabled;
 
   const StopButton({
     super.key,
     required this.onPressed,
+    required this.hapticsEnabled,
   });
 
   @override
@@ -472,6 +942,9 @@ class _StopButtonState extends State<StopButton> {
     return GestureDetector(
       onTapDown: (_) {
         setState(() => isPressed = true);
+        if (widget.hapticsEnabled) {
+          HapticFeedback.heavyImpact();
+        }
         widget.onPressed();
       },
       onTapUp: (_) {
