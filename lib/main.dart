@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
+import 'dart:io';
 import 'package:black_box/screens/settings_page.dart';
 
 class AppColors {
@@ -100,8 +101,6 @@ ThemeData darkTheme() => ThemeData(
   useMaterial3: true,
 );
 
-// ─── Entry Point ──────────────────────────────────────────────────────────────
-
 void main() {
   runApp(const CarControlApp());
 }
@@ -130,8 +129,6 @@ class _CarControlAppState extends State<CarControlApp> {
     );
   }
 }
-
-// ─── Preferences Model ────────────────────────────────────────────────────────
 
 class AppPreferences {
   final String esp32IP;
@@ -177,8 +174,6 @@ class AppPreferences {
     );
   }
 }
-
-// ─── App Shell ────────────────────────────────────────────────────────────────
 
 class AppShell extends StatefulWidget {
   final bool isDarkMode;
@@ -246,7 +241,7 @@ class _AppShellState extends State<AppShell> {
   }
 }
 
-// ─── Car Control Page ─────────────────────────────────────────────────────────
+// ─── Car Control Page 
 
 class CarControlPage extends StatefulWidget {
   final String esp32IP;
@@ -274,6 +269,7 @@ class CarControlPage extends StatefulWidget {
 
 class _CarControlPageState extends State<CarControlPage> {
   Timer? autoReconnectTimer;
+  Future<void> _commandQueue = Future<void>.value();
   String connectionStatus = 'Disconnected';
   bool isConnected = false;
   String lastCommand = 'STOP';
@@ -313,14 +309,20 @@ class _CarControlPageState extends State<CarControlPage> {
 
   Future<void> checkConnection() async {
     try {
-      final response = await http
-          .get(Uri.parse('http://${widget.esp32IP}/stop'))
-          .timeout(const Duration(seconds: 3));
+      final socket = await Socket.connect(
+        widget.esp32IP,
+        80,
+        timeout: const Duration(seconds: 2),
+      );
+      socket.destroy();
+
+      if (!mounted) return;
       setState(() {
-        isConnected = response.statusCode == 200;
-        connectionStatus = isConnected ? 'Connected to ESP32' : 'ESP32 Error';
+        isConnected = true;
+        connectionStatus = 'Connected to ESP32';
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() {
         isConnected = false;
         connectionStatus = 'ESP32 Not Found';
@@ -329,34 +331,44 @@ class _CarControlPageState extends State<CarControlPage> {
   }
 
   Future<void> sendCommand(String command) async {
+    _commandQueue = _commandQueue.then((_) => _sendCommandInternal(command));
+    await _commandQueue;
+  }
+
+  Future<void> _sendCommandInternal(String command) async {
     try {
       final response = await http
           .get(Uri.parse('http://${widget.esp32IP}/$command'))
           .timeout(widget.commandTimeout);
+
+      if (response.statusCode != 200) {
+        throw HttpException('ESP32 returned status ${response.statusCode}');
+      }
+
+      if (!mounted) return;
       setState(() {
-        lastCommand = response.body;
+        lastCommand = response.body.trim().isEmpty
+            ? command.toUpperCase()
+            : response.body;
         if (!isConnected) {
           isConnected = true;
           connectionStatus = 'Connected to ESP32';
         }
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        connectionStatus = 'Connection Failed';
+        connectionStatus = 'Command Failed';
         isConnected = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Command failed: $e'),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Command failed: $e'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     }
   }
-
-  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
@@ -439,8 +451,6 @@ class _CarControlPageState extends State<CarControlPage> {
     );
   }
 
-  // ── Status card ─────────────────────────────────────────────────────────────
-
   Widget _buildStatusCard(bool dark, Color statusColor) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -516,8 +526,6 @@ class _CarControlPageState extends State<CarControlPage> {
     );
   }
 
-  // ── D-pad control ──────────────────────────────────────────────────────────
-
   Widget _buildControlPad(bool dark) {
     final btnColor = dark ? AppColors.btnDark : AppColors.btnLight;
 
@@ -572,13 +580,34 @@ class _CarControlPageState extends State<CarControlPage> {
               isDark: dark,
               hapticsEnabled: widget.hapticsEnabled,
             ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ControlButton(
+                  icon: Icons.turn_left_rounded,
+                  label: 'L IND',
+                  onPressed: () => sendCommand('left_indicator'),
+                  color: btnColor,
+                  isDark: dark,
+                  hapticsEnabled: widget.hapticsEnabled,
+                ),
+                const SizedBox(width: 28),
+                ControlButton(
+                  icon: Icons.turn_right_rounded,
+                  label: 'R IND',
+                  onPressed: () => sendCommand('right_indicator'),
+                  color: btnColor,
+                  isDark: dark,
+                  hapticsEnabled: widget.hapticsEnabled,
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
-
-  // ── Footer chip ────────────────────────────────────────────────────────────
 
   Widget _buildFooterChip(bool dark) {
     return Padding(
@@ -622,7 +651,6 @@ class _CarControlPageState extends State<CarControlPage> {
   }
 }
 
-// ─── Control Button ───────────────────────────────────────────────────────────
 
 class ControlButton extends StatefulWidget {
   final IconData icon;
@@ -713,7 +741,6 @@ class _ControlButtonState extends State<ControlButton> {
   }
 }
 
-// ─── Stop Button ──────────────────────────────────────────────────────────────
 
 class StopButton extends StatefulWidget {
   final VoidCallback onPressed;

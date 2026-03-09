@@ -254,30 +254,23 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextField(
-                controller: nameController,
+              Text(
+                nameController.text.isEmpty
+                    ? 'Black Box Pilot'
+                    : nameController.text,
                 style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: _textPrimary),
-                decoration: InputDecoration(
-                  isDense: true,
-                  contentPadding: EdgeInsets.zero,
-                  border: InputBorder.none,
-                  hintText: 'Controller name',
-                  hintStyle: TextStyle(color: _textMuted, fontSize: 15),
-                ),
-                onChanged: (_) => _markDirty(),
               ),
               const SizedBox(height: 3),
               Text(
-                'Tap to edit your controller name',
+                'Controller profile',
                 style: TextStyle(fontSize: 11, color: _textMuted),
               ),
             ],
           ),
         ),
-        Icon(Icons.edit_outlined, size: 16, color: _textMuted),
       ],
     ),
   );
@@ -515,27 +508,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   // ── Section: Control ───────────────────────────────────────────────────────
 
-  Widget _buildControlCard() => _card(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionLabel('Control'),
-        _switchRow(
-          icon: Icons.vibration,
-          label: 'Haptic Feedback',
-          subtitle: 'Vibration when pressing buttons',
-          value: hapticsEnabled,
-          activeColor: widget.isDarkMode
-              ? AppColors.darkAccentAmber
-              : AppColors.lightAccent,
-          onChanged: (v) {
-            setState(() => hapticsEnabled = v);
-            _markDirty();
-          },
-        ),
-      ],
-    ),
-  );
+  Widget _buildControlCard() => const SizedBox.shrink();
 
   // ── Section: About ─────────────────────────────────────────────────────────
 
