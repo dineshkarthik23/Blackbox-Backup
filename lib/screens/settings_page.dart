@@ -137,38 +137,62 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _card({required Widget child, EdgeInsets? padding}) => Container(
     margin: const EdgeInsets.only(bottom: 14),
-    padding: padding ?? const EdgeInsets.all(16),
+    padding: padding ?? const EdgeInsets.all(18),
     decoration: BoxDecoration(
       color: _cardBg,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       boxShadow: widget.isDarkMode
-          ? []
+          ? [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ]
           : [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 10,
-                offset: const Offset(0, 3),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
             ],
       border: Border.all(
         color: widget.isDarkMode
-            ? AppColors.darkSurface.withValues(alpha: 0.5)
-            : AppColors.lightBorder.withValues(alpha: 0.6),
+            ? AppColors.darkSurfaceSoft.withValues(alpha: 0.4)
+            : AppColors.lightBorder.withValues(alpha: 0.5),
       ),
     ),
     child: child,
   );
 
   Widget _sectionLabel(String label) => Padding(
-    padding: const EdgeInsets.only(bottom: 12),
-    child: Text(
-      label.toUpperCase(),
-      style: TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 1.2,
-        color: _accent,
-      ),
+    padding: const EdgeInsets.only(bottom: 14),
+    child: Row(
+      children: [
+        Container(
+          width: 3,
+          height: 14,
+          decoration: BoxDecoration(
+            color: _accent,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.4,
+            color: _accent,
+          ),
+        ),
+      ],
     ),
   );
 
@@ -176,19 +200,19 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        flexibleSpace: widget.isDarkMode
-            ? null
-            : Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.lightHeaderTop, AppColors.lightHeaderBot],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-              ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: widget.isDarkMode
+                  ? [AppColors.darkAppBar, const Color(0xFF0A1E36)]
+                  : [AppColors.lightHeaderTop, AppColors.lightHeaderBot],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         title: const Text('Settings',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, letterSpacing: 0.3)),
         actions: [
           // Dark/light toggle
           IconButton(
@@ -240,14 +264,23 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _buildProfileCard() => _card(
     child: Row(
       children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: _accent,
-          child: Icon(Icons.sports_esports,
-              color: widget.isDarkMode
-                  ? AppColors.darkBgBot
-                  : Colors.white,
-              size: 24),
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_accent, _accentAlt],
+            ),
+          ),
+          child: CircleAvatar(
+            radius: 24,
+            backgroundColor: _cardBg,
+            child: Icon(Icons.sports_esports,
+                color: _accent,
+                size: 22),
+          ),
         ),
         const SizedBox(width: 14),
         Expanded(
@@ -259,14 +292,15 @@ class _SettingsPageState extends State<SettingsPage> {
                     ? 'Black Box Pilot'
                     : nameController.text,
                 style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: _textPrimary),
+                    color: _textPrimary,
+                    letterSpacing: 0.2),
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
               Text(
                 'Controller profile',
-                style: TextStyle(fontSize: 11, color: _textMuted),
+                style: TextStyle(fontSize: 11, color: _textMuted, letterSpacing: 0.3),
               ),
             ],
           ),
@@ -282,7 +316,14 @@ class _SettingsPageState extends State<SettingsPage> {
         _sectionLabel('Appearance'),
         Row(
           children: [
-            Icon(Icons.palette_outlined, color: _accent, size: 20),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: _accent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.palette_outlined, color: _accent, size: 18),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Text('Theme',
@@ -518,11 +559,20 @@ class _SettingsPageState extends State<SettingsPage> {
       children: [
         _sectionLabel('About'),
         _infoRow(Icons.directions_car_outlined, 'App', 'Car Control — Black Box'),
-        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Divider(height: 1, color: _textMuted.withValues(alpha: 0.12)),
+        ),
         _infoRow(Icons.tag, 'Version', '1.2.0'),
-        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Divider(height: 1, color: _textMuted.withValues(alpha: 0.12)),
+        ),
         _infoRow(Icons.developer_board, 'Target', 'ESP32 (HTTP REST)'),
-        const SizedBox(height: 10),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Divider(height: 1, color: _textMuted.withValues(alpha: 0.12)),
+        ),
         _infoRow(Icons.wifi, 'Protocol', 'HTTP / Wi-Fi'),
       ],
     ),
@@ -530,8 +580,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _infoRow(IconData icon, String label, String value) => Row(
     children: [
-      Icon(icon, size: 16, color: _accent),
-      const SizedBox(width: 10),
+      Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: _accent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 16, color: _accent),
+      ),
+      const SizedBox(width: 12),
       Text(label,
           style: TextStyle(fontSize: 13, color: _textMuted)),
       const Spacer(),
@@ -551,17 +608,35 @@ class _SettingsPageState extends State<SettingsPage> {
         // Save
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _save,
-            icon: const Icon(Icons.save_outlined, size: 18),
-            label: const Text('Save Settings',
-                style: TextStyle(fontWeight: FontWeight.w700)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _accent,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [_accent, _accentAlt],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: _accent.withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.save_outlined, size: 18),
+              label: const Text('Save Settings',
+                  style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.3)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
             ),
           ),
         ),
@@ -579,9 +654,9 @@ class _SettingsPageState extends State<SettingsPage> {
                     fontWeight: FontWeight.w600, color: _textMuted)),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              side: BorderSide(color: _textMuted.withValues(alpha: 0.35)),
+              side: BorderSide(color: _textMuted.withValues(alpha: 0.3)),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(14)),
             ),
           ),
         ),
@@ -635,30 +710,40 @@ class _SettingsPageState extends State<SettingsPage> {
     required Color activeColor,
     required ValueChanged<bool> onChanged,
   }) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: _accent),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary)),
-              Text(subtitle,
-                  style: TextStyle(fontSize: 11, color: _textMuted)),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: _accent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 18, color: _accent),
           ),
-        ),
-        Switch.adaptive(
-          value: value,
-          activeColor: activeColor,
-          onChanged: onChanged,
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary)),
+                Text(subtitle,
+                    style: TextStyle(fontSize: 11, color: _textMuted)),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: value,
+            activeColor: activeColor,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 }

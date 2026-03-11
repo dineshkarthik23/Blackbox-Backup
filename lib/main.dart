@@ -55,8 +55,10 @@ ThemeData lightTheme() => ThemeData(
   navigationBarTheme: NavigationBarThemeData(
     backgroundColor: Colors.white,
     indicatorColor: AppColors.lightSurface,
+    height: 68,
+    indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     labelTextStyle: WidgetStateProperty.all(
-      const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.3),
     ),
   ),
   snackBarTheme: SnackBarThemeData(
@@ -64,6 +66,11 @@ ThemeData lightTheme() => ThemeData(
     contentTextStyle: const TextStyle(color: Colors.white),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     behavior: SnackBarBehavior.floating,
+  ),
+  sliderTheme: const SliderThemeData(
+    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7),
+    overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
+    trackHeight: 3,
   ),
   useMaterial3: true,
 );
@@ -88,8 +95,10 @@ ThemeData darkTheme() => ThemeData(
   navigationBarTheme: NavigationBarThemeData(
     backgroundColor: AppColors.darkAppBar,
     indicatorColor: AppColors.darkSurfaceSoft,
+    height: 68,
+    indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     labelTextStyle: WidgetStateProperty.all(
-      const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.3),
     ),
   ),
   snackBarTheme: SnackBarThemeData(
@@ -97,6 +106,11 @@ ThemeData darkTheme() => ThemeData(
     contentTextStyle: const TextStyle(color: AppColors.darkTextPrimary),
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     behavior: SnackBarBehavior.floating,
+  ),
+  sliderTheme: const SliderThemeData(
+    thumbShape: RoundSliderThumbShape(enabledThumbRadius: 7),
+    overlayShape: RoundSliderOverlayShape(overlayRadius: 16),
+    trackHeight: 3,
   ),
   useMaterial3: true,
 );
@@ -221,21 +235,33 @@ class _AppShellState extends State<AppShell> {
           ),
         ],
       ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: selectedTab,
-        onDestinationSelected: (i) => setState(() => selectedTab = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.sports_esports_outlined),
-            selectedIcon: Icon(Icons.sports_esports),
-            label: 'Control',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              color: widget.isDarkMode
+                  ? AppColors.darkSurfaceSoft.withValues(alpha: 0.5)
+                  : AppColors.lightBorder.withValues(alpha: 0.5),
+              width: 0.5,
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
-          ),
-        ],
+        ),
+        child: NavigationBar(
+          selectedIndex: selectedTab,
+          onDestinationSelected: (i) => setState(() => selectedTab = i),
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.sports_esports_outlined),
+              selectedIcon: Icon(Icons.sports_esports),
+              label: 'Control',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Settings',
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -377,23 +403,20 @@ class _CarControlPageState extends State<CarControlPage> {
 
     return Scaffold(
       appBar: AppBar(
-        flexibleSpace: dark
-            ? null
-            : Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.lightHeaderTop,
-                      AppColors.lightHeaderBot,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-              ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: dark
+                  ? [AppColors.darkAppBar, const Color(0xFF0A1E36)]
+                  : [AppColors.lightHeaderTop, AppColors.lightHeaderBot],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         title: const Text(
           'Car Control — Black Box',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, letterSpacing: 0.3),
         ),
         actions: [
           IconButton(
@@ -440,6 +463,31 @@ class _CarControlPageState extends State<CarControlPage> {
               child: Column(
                 children: [
                   _buildStatusCard(dark, statusColor),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: dark ? AppColors.darkAccentCyan : AppColors.lightAccent,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'CONTROLS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1.4,
+                            color: dark ? AppColors.darkAccentCyan : AppColors.lightAccent,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   Expanded(child: _buildControlPad(dark)),
                   _buildFooterChip(dark),
                 ],
@@ -455,12 +503,12 @@ class _CarControlPageState extends State<CarControlPage> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
           color: dark
               ? AppColors.darkSurface.withValues(alpha: 0.62)
               : AppColors.lightBgCard,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: statusColor, width: 1.5),
           boxShadow: [
             BoxShadow(
@@ -473,15 +521,15 @@ class _CarControlPageState extends State<CarControlPage> {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: statusColor.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 isConnected ? Icons.wifi : Icons.wifi_off,
                 color: statusColor,
-                size: 18,
+                size: 20,
               ),
             ),
             const SizedBox(width: 12),
@@ -629,18 +677,18 @@ class _CarControlPageState extends State<CarControlPage> {
 
   Widget _buildFooterChip(bool dark) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: dark
               ? AppColors.darkSurface.withValues(alpha: 0.35)
               : AppColors.lightSurface,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: dark
                 ? AppColors.darkAccentCyan.withValues(alpha: 0.18)
-                : AppColors.lightBorder,
+                : AppColors.lightBorder.withValues(alpha: 0.7),
           ),
         ),
         child: Row(
@@ -697,10 +745,6 @@ class _ControlButtonState extends State<ControlButton> {
 
   @override
   Widget build(BuildContext context) {
-    final bg = widget.isDark
-        ? widget.color.withValues(alpha: _pressed ? 0.95 : 0.78)
-        : widget.color.withValues(alpha: _pressed ? 1.0 : 0.85);
-
     return GestureDetector(
       onTapDown: (_) {
         setState(() => _pressed = true);
@@ -711,15 +755,27 @@ class _ControlButtonState extends State<ControlButton> {
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 90),
-        width: 90,
-        height: 90,
+        width: 92,
+        height: 92,
         decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: _pressed
+                ? [
+                    widget.color.withValues(alpha: 0.95),
+                    widget.color.withValues(alpha: 0.80),
+                  ]
+                : [
+                    widget.color.withValues(alpha: widget.isDark ? 0.85 : 0.92),
+                    widget.color.withValues(alpha: widget.isDark ? 0.65 : 0.75),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
             color: widget.isDark
-                ? Colors.white.withValues(alpha: 0.14)
-                : widget.color.withValues(alpha: 0.35),
+                ? Colors.white.withValues(alpha: 0.15)
+                : widget.color.withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: _pressed
@@ -727,9 +783,9 @@ class _ControlButtonState extends State<ControlButton> {
               : [
                   BoxShadow(
                     color: widget.color.withValues(
-                      alpha: widget.isDark ? 0.45 : 0.25,
+                      alpha: widget.isDark ? 0.45 : 0.28,
                     ),
-                    blurRadius: 14,
+                    blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
                 ],
@@ -740,16 +796,16 @@ class _ControlButtonState extends State<ControlButton> {
             Icon(
               widget.icon,
               size: 34,
-              color: widget.isDark ? Colors.white : Colors.white,
+              color: Colors.white,
             ),
             const SizedBox(height: 5),
             Text(
               widget.label,
               style: const TextStyle(
                 fontSize: 10,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: Colors.white,
-                letterSpacing: 0.5,
+                letterSpacing: 0.8,
               ),
             ),
           ],
@@ -789,8 +845,8 @@ class _StopButtonState extends State<StopButton> {
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 90),
-        width: 100,
-        height: 100,
+        width: 104,
+        height: 104,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
@@ -801,16 +857,22 @@ class _StopButtonState extends State<StopButton> {
           ),
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.15),
-            width: 1.5,
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 2,
           ),
           boxShadow: _pressed
               ? []
               : [
                   BoxShadow(
-                    color: AppColors.stopPrimary.withValues(alpha: 0.55),
-                    blurRadius: 18,
+                    color: AppColors.stopPrimary.withValues(alpha: 0.5),
+                    blurRadius: 22,
+                    spreadRadius: 2,
                     offset: const Offset(0, 8),
+                  ),
+                  BoxShadow(
+                    color: AppColors.stopPrimary.withValues(alpha: 0.2),
+                    blurRadius: 40,
+                    spreadRadius: 4,
                   ),
                 ],
         ),
@@ -823,9 +885,9 @@ class _StopButtonState extends State<StopButton> {
               'STOP',
               style: TextStyle(
                 fontSize: 15,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
                 color: Colors.white,
-                letterSpacing: 2,
+                letterSpacing: 2.5,
               ),
             ),
           ],
